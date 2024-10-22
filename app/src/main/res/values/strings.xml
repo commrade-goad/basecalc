@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">BaseCalc</string>
+    <string name="start_btn">START</string>
+    <string name="box_hint">Enter Number or calculation</string>
+    <string name="decimal">Decimal</string>
+    <string name="hexadecimal">Hexadecimal</string>
+    <string name="binary">Binary</string>
+    <string name="octal">Octal</string>
+    <string name="change_me">the value goes here</string>
+    <string name="history">History</string>
+</resources>
