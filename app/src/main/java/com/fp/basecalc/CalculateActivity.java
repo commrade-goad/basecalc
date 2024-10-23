@@ -2,6 +2,7 @@ package com.fp.basecalc;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -21,6 +22,8 @@ import java.util.regex.Pattern;
 
 
 public class CalculateActivity extends AppCompatActivity {
+    private Handler handler = new Handler();
+    private Runnable runnable;
 
     public static boolean isNumeric(String str) {
         if (str == null) {
@@ -85,6 +88,7 @@ public class CalculateActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(CalculateActivity.this, HistoryActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
             }
         });
@@ -100,6 +104,18 @@ public class CalculateActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
+
+                handler.removeCallbacks(runnable);
+                runnable = () -> {
+                    CalculationEntry newEntry = new CalculationEntry(System.currentTimeMillis(), s.toString());
+                    boolean success = ReadWrite.write(CalculateActivity.this, "storage.json", newEntry);
+                    if (success) {
+                        // Handle success (e.g., show a Toast)
+                    } else {
+                        // Handle failure (e.g., show an error message)
+                    }
+                };
+                handler.postDelayed(runnable, 3000);
 
                 boolean decimal_input_valid = false;
                 int decimal_input;
@@ -146,8 +162,7 @@ public class CalculateActivity extends AppCompatActivity {
                     int[] nums = new int[stuff_len];
                     int tmp_buf;
                     String[] operations_arr = operations.toArray(new String[0]);
-                    for (int i = 0; i < stuff_len; i++) {
-                        String part = stuff[i];
+                    for (String part : stuff) {
                         if (part.startsWith(DecimalType.HEXADECIMAL.getFormat())) {
                             try {
                                 tmp_buf = Integer.parseInt(part.substring(2), 16);
@@ -181,47 +196,24 @@ public class CalculateActivity extends AppCompatActivity {
                     int operation_index = 0;
                     int sum = 0;
                     while (index < nums.length) {
-//                        if (index+1 >= nums.length && operation_index < operations_arr.length) {
-//                            if (operations_arr[operation_index].equals("+")) {
-//                                sum += nums[index];
-//                            } else if (operations_arr[operation_index].equals("-")) {
-//                                sum -= nums[index];
-//                            } else if (operations_arr[operation_index].equals("*")) {
-//                                sum *= nums[index];
-//                            } else if (operations_arr[operation_index].equals("/")) {
-//                                sum /= nums[index];
-//                            }
-//                        }
-//                        if (index+1 >= nums.length || operation_index >= operations_arr.length) {
-//                            break;
-//                        }
-//
-//                        if (operations_arr[operation_index].equals("+")) {
-//                            sum += nums[index] + nums[index+1];
-//                            index += 1;
-//                        } else if (operations_arr[operation_index].equals("-")) {
-//                            sum -= nums[index] - nums[index+1];
-//                            index += 1;
-//                        } else if (operations_arr[operation_index].equals("*")) {
-//                            sum += nums[index] * nums[index+1];
-//                            index += 1;
-//                        } else if (operations_arr[operation_index].equals("/")) {
-//                            sum += nums[index] / nums[index+1];
-//                            index += 1;
-//                        }
-                        if (index ==0) {
+                        if (index == 0) {
                             sum = nums[index];
                             index += 1;
                             continue;
                         }
-                        if (operations_arr[operation_index].equals("+")) {
-                            sum += nums[index];
-                        } else if (operations_arr[operation_index].equals("-")) {
-                            sum -= nums[index];
-                        } else if (operations_arr[operation_index].equals("*")) {
-                            sum *= nums[index];
-                        } else if (operations_arr[operation_index].equals("/")) {
-                            sum /= nums[index];
+                        switch (operations_arr[operation_index]) {
+                            case "+":
+                                sum += nums[index];
+                                break;
+                            case "-":
+                                sum -= nums[index];
+                                break;
+                            case "*":
+                                sum *= nums[index];
+                                break;
+                            case "/":
+                                sum /= nums[index];
+                                break;
                         }
 
                         index += 1;
