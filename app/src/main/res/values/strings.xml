@@ -8,4 +8,5 @@
     <string name="octal">Octal</string>
     <string name="change_me">the value goes here</string>
     <string name="history">History</string>
+    <string name="chist">Clear History</string>
 </resources>

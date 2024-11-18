@@ -91,6 +91,10 @@ public class ReadWrite {
         return create(context, fileName, entries); // Save all entries back to the file
     }
 
+    public static boolean clean_file(Context context, String fileName) {
+        return create(context, fileName, new ArrayList<>());
+    }
+
 //    to read and write
 //    List<CalculationEntry> calculations;
 //    if (ReadWrite.isFilePresent(this, "storage.json")) {

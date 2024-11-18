@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,12 +18,13 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 public class CalculateActivity extends AppCompatActivity {
-    private Handler handler = new Handler();
+    private final Handler handler = new Handler();
     private Runnable runnable;
 
     public static boolean isNumeric(String str) {
@@ -77,6 +79,7 @@ public class CalculateActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_calculate);
 
+        final String[] old_input = new String[1];
         Button btn_history = findViewById(R.id.btn_history);
         EditText input_text = findViewById(R.id.input_text);
         TextView decimal = findViewById(R.id.dec);
@@ -105,14 +108,26 @@ public class CalculateActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
 
+                old_input[0] = s.toString();
                 handler.removeCallbacks(runnable);
                 runnable = () -> {
+                    if (s.toString().isEmpty()) {
+                        return;
+                    }
                     CalculationEntry newEntry = new CalculationEntry(System.currentTimeMillis(), s.toString());
-                    boolean success = ReadWrite.write(CalculateActivity.this, "storage.json", newEntry);
-                    if (success) {
-                        // Handle success (e.g., show a Toast)
+                    if (ReadWrite.isFilePresent(CalculateActivity.this, "storage.json")) {
+                        boolean success = ReadWrite.write(CalculateActivity.this, "storage.json", newEntry);
+                        if (!success) {
+                            Toast.makeText(getApplicationContext(), "Failed to save history.", Toast.LENGTH_LONG).show();
+                        }
                     } else {
-                        // Handle failure (e.g., show an error message)
+                        List<CalculationEntry> ent = new ArrayList<CalculationEntry>();
+                        ent.add(newEntry);
+                        ReadWrite.create(CalculateActivity.this, "storage.json", ent);
+                        boolean success = ReadWrite.write(CalculateActivity.this, "storage.json", newEntry);
+                        if (!success) {
+                            Toast.makeText(getApplicationContext(), "Failed to save history.", Toast.LENGTH_LONG).show();
+                        }
                     }
                 };
                 handler.postDelayed(runnable, 3000);
@@ -293,6 +308,12 @@ public class CalculateActivity extends AppCompatActivity {
                 hexadecimal.setText(hexadecimal_input);
             }
         });
+
+        Intent history_intent = getIntent();
+        if (history_intent != null) {
+            String buffer = history_intent.getStringExtra("calc");
+            input_text.setText(buffer);
+        }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
