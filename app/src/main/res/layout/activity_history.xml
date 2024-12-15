@@ -33,6 +33,7 @@
         android:text="@string/chist"
         android:layout_marginBottom="20dp"
         android:layout_marginLeft="40dp"
-        android:layout_marginRight="40dp"/>
+        android:layout_marginRight="40dp"
+        android:background="@drawable/box"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
